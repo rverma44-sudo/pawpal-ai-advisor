@@ -155,22 +155,80 @@ if scheduler is None or not scheduler.scheduled_tasks:
 else:
     total = scheduler.get_total_scheduled_duration()
     budget = owner.available_minutes_per_day
-    st.markdown(
-        f"**{len(scheduler.scheduled_tasks)} task(s) scheduled — "
-        f"{total} / {budget} min used**"
-    )
+    sorted_tasks = scheduler.sort_by_time()
+
+    # Part 2 — Conflict status is the first thing the owner sees
+    conflict_msg = scheduler.detect_conflicts()
+    if conflict_msg:
+        st.warning(f"⚠️ Scheduling Conflict Detected\n\n{conflict_msg}")
+    else:
+        st.success("No scheduling conflicts")
+
+    # Part 1 — Budget summary and nearly-full alert
+    st.success(f"{len(sorted_tasks)} task(s) scheduled — {total} / {budget} min used")
+    if budget - total <= 10:
+        st.warning(f"Schedule is nearly full — only {budget - total} min remaining.")
+
+    # Part 1 — Sorted schedule table (chronological order, with Time column)
     st.dataframe(
         [
             {
                 "Task": t.name,
+                "Time": t.time,
                 "Duration (min)": t.duration_minutes,
                 "Priority": t.priority,
                 "Category": t.category,
             }
-            for t in scheduler.scheduled_tasks
+            for t in sorted_tasks
         ],
         use_container_width=True,
     )
-    explanation = scheduler.explain_plan()
-    if explanation:
-        st.info(explanation)
+
+    st.divider()
+
+    # Part 3 — Plan explanation inside an expander to avoid cluttering the main view
+    explanation_text = scheduler.explain_plan()
+    with st.expander("Why was this plan chosen?"):
+        st.text(explanation_text)
+
+    scheduled_names = {t.name for t in scheduler.scheduled_tasks}
+    excluded_tasks = [
+        t
+        for pet in scheduler.pets
+        for t in pet.get_tasks()
+        if not t.is_completed and t.name not in scheduled_names
+    ]
+    if excluded_tasks:
+        st.warning(
+            "Tasks excluded due to time constraints: "
+            + ", ".join(t.name for t in excluded_tasks)
+        )
+
+    st.divider()
+
+    # Part 4 — Filtered views
+    st.subheader("Filter Schedule")
+    filter_choice = st.radio("Show", ["All", "Completed", "Incomplete"], horizontal=True)
+
+    if filter_choice == "Completed":
+        filtered = scheduler.filter_by_status(True)
+    elif filter_choice == "Incomplete":
+        filtered = scheduler.filter_by_status(False)
+    else:
+        filtered = sorted_tasks
+
+    if filtered:
+        st.table(
+            [
+                {
+                    "Task": t.name,
+                    "Time": t.time,
+                    "Duration (min)": t.duration_minutes,
+                    "Priority": t.priority,
+                    "Category": t.category,
+                }
+                for t in filtered
+            ]
+        )
+    else:
+        st.info(f"No {filter_choice.lower()} tasks to show.")

@@ -55,6 +55,21 @@ PawPal+ includes a bunch of features that automate scheduling to make it intelli
 - **Conflict Detection** — the scheduler warns owners when two tasks 
   are booked at the same time, for the same pet or across pets, 
   without crashing the app
-- **Time-Constrained Planning** — the scheduler only includes tasks 
-  that fit within the owner's available daily minutes, and explains 
+- **Time-Constrained Planning** — the scheduler only includes tasks
+  that fit within the owner's available daily minutes, and explains
   which tasks were excluded and why
+
+## Testing PawPal+
+
+The test suite uses pytest with real instantiated objects from `pawpal_system.py` so every test exercises the actual scheduling logic end to end.
+
+### Running the tests
+python -m pytest
+### What is covered
+
+- **Sorting order** — No matter what order the tasks are added, the system will automatically organize them chronologically so the schedule makes sense.
+- **Handling repeating chores** — Once a daily or weekly task is completed, the app automatically creates the next occurence of it at the correct time.
+- **Schedule Clashes** — If two tasks are scheduled on accident for the exact same time, the app will warn you to avoid that or allow you to address it.
+- **Edge cases** — Ensures app doesn't crash with empty cariables. Empty task lists produce an empty plan without raising an exception; unknown task names return a warning string; a time budget smaller than the shortest task yields an empty plan; one-time tasks do not generate a new occurrence after completion.
+
+**Confidence Level: 5/5 Stars. Based on my test results, I am very confident in the system's reliability.
