@@ -1,5 +1,6 @@
 import streamlit as st
 from pawpal_system import Owner, Pet, Task, Scheduler
+from ai_advisor import get_ai_advice, log_interaction
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -331,3 +332,37 @@ else:
         )
     else:
         st.info(f"No {filter_choice.lower()} tasks to show.")
+
+st.divider()
+
+# --- AI Advisor ------------------------------------------------------------
+st.subheader("🤖 AI Pet Care Advisor")
+st.markdown("Ask a question about your pets and get AI-powered advice based on your schedule.")
+
+if not owner.get_pets():
+    st.info("Add at least one pet above before using the AI Advisor.")
+else:
+    user_query = st.text_input("Ask the AI advisor anything about your pets:", placeholder="e.g. What should I prioritize for Max today?")
+
+    if st.button("Get Advice"):
+        if user_query.strip():
+            with st.spinner("Thinking..."):
+                result = get_ai_advice(user_query, owner)
+                log_interaction(user_query, result)
+
+            if result["flagged"]:
+                st.error(f"⚠️ {result['response']}")
+            elif result["success"]:
+                st.success("✅ AI Advisor Response:")
+                st.markdown(result["response"])
+                confidence = result["confidence"]
+                if confidence >= 0.8:
+                    st.info(f"🟢 Confidence: {confidence:.0%}")
+                elif confidence >= 0.5:
+                    st.warning(f"🟡 Confidence: {confidence:.0%}")
+                else:
+                    st.error(f"🔴 Confidence: {confidence:.0%} — treat this response with caution.")
+            else:
+                st.error(f"Something went wrong: {result['response']}")
+        else:
+            st.warning("Please enter a question first.")
