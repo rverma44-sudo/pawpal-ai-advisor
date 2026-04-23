@@ -124,9 +124,7 @@ python3 evaluate.py
 
 ## 🎥 Demo Walkthrough
 
-[Loom Video Link — I will insert here once I do it]
-
----
+https://drive.google.com/file/d/19bVRqReReSfh04vC3AwqooeQM9vxE37L/view?usp=sharing---
 
 ## 🧠 Design Decisions
 

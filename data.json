@@ -1,0 +1,28 @@
+{
+  "name": "Jordan",
+  "email": "",
+  "available_minutes_per_day": 60,
+  "preferences": [],
+  "pets": [
+    {
+      "name": "Peter",
+      "species": "Dog",
+      "breed": "Great Dane",
+      "age_years": 3,
+      "health_notes": [],
+      "tasks": [
+        {
+          "name": "Morning Walk",
+          "duration_minutes": 30,
+          "priority": 4,
+          "category": "exercise",
+          "is_completed": false,
+          "notes": "",
+          "time": "00:00",
+          "frequency": "once",
+          "due_date": "2026-04-22"
+        }
+      ]
+    }
+  ]
+}
