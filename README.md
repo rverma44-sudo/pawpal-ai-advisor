@@ -1,4 +1,19 @@
-🐾 PawPal+ AI Advisor
+# PawPal Procedural Garden
+
+![Latest automated procedural garden frame](garden/current.svg)
+
+This repository now hosts a lightweight daily procedural-art generator. It creates
+real SVG file changes with transparent commit messages and variable daily activity.
+The scheduled generator uses Python's standard library, Git, and GitHub Actions;
+it requires no AI model, Codex CLI, API key, dependency installation, or powered-on
+computer. [Configuration, safety, and operating instructions](gardener/README.md).
+
+The original PawPal application and its history remain available below. Its AI
+dependencies are not part of the scheduled garden workflow.
+
+---
+
+## Original PawPal+ AI Advisor
 
 An intelligent pet care management system that combines algorithmic scheduling with a Claude-powered AI advisory layer, input/output guardrails, confidence scoring, and an automated evaluation harness.
 

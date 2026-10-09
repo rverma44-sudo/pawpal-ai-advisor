@@ -1,0 +1,42 @@
+name: Contribution Garden
+
+on:
+  schedule:
+    - cron: '17 10 * * *'
+      timezone: America/Phoenix
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Preview today's decision without committing or pushing
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: contribution-garden-main
+  cancel-in-progress: false
+
+jobs:
+  garden:
+    if: github.repository == 'rverma44-sudo/pawpal-ai-advisor'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      TZ: America/Phoenix
+      GARDENER_TOKEN: ${{ github.token }}
+      GARDENER_DRY_RUN: ${{ inputs.dry_run || false }}
+    steps:
+      - name: Generate, commit, push, and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --single-branch --no-tags --branch main \
+            https://github.com/rverma44-sudo/pawpal-ai-advisor.git garden-repo
+          cd garden-repo
+          if [ "$GARDENER_DRY_RUN" = 'true' ]; then
+            python3 gardener/generate.py --dry-run
+          else
+            python3 gardener/generate.py
+          fi
