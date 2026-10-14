@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "counter": 10,
-  "day": "2026-10-13",
-  "category": "light",
-  "target": 1,
+  "counter": 11,
+  "day": "2026-10-14",
+  "category": "very_heavy",
+  "target": 13,
   "completed": 1
 }
