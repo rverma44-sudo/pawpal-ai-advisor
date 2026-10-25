@@ -24,21 +24,26 @@ and security settings are not changed. No push trigger causes recursive runs.
 
 ## Probability settings
 
-Edit `gardener/config.json`; no Python rewrite is needed. Weights must total 100
+Edit `gardener/config.json`; no Python rewrite is needed. Weights may be fractional and must total 100
 and counts are limited to 0–14. The defaults are:
 
 | Category | Probability | Commits |
 | --- | ---: | ---: |
-| none | 20% | 0 |
-| light | 30% | 1–2 |
-| moderate | 30% | 3–5 |
-| heavy | 15% | 6–9 |
-| very_heavy | 5% | 10–14 |
+| none | 44% | 0 |
+| light | 21% | 1–2 |
+| moderate | 21% | 3–5 |
+| heavy | 10.5% | 6–9 |
+| very_heavy | 3.5% | 10–14 |
+
+The active-day probability is 56%, down from the original 80% by a single 0.70
+factor. All active category weights were scaled equally; the distribution and
+count ranges conditional on an active day are unchanged. No extra probability
+gate or scheduling reduction is applied.
 
 A SHA-256 seed of the configured seed and current local date drives the daily
 pseudorandom choice; reruns cannot redraw a different outcome. Each count within
-a category is equally likely. The mean is 3.375 generated commits per calendar
-day, about 101 per 30 days, subject to successful execution. It is a probability
+a category is equally likely. The mean is 2.3625 generated commits per calendar
+day, about 71 per 30 days, subject to successful execution. It is a probability
 distribution, not a guarantee of particular colors or daily counts.
 
 `gardener/state.json` is committed with every generated frame and holds the last
@@ -78,7 +83,7 @@ and may take up to 24 hours to process the profile graph. A confirmed push prove
 delivery; a profile contribution API result proves graph credit.
 
 Actions automatically disables public schedules after 60 days without repository
-activity. The default 80% activity-day model should keep the repository active,
+activity. The default 56% activity-day model should keep the repository active,
 but changing settings to prolonged inactivity or enduring failures may require
 re-enabling the workflow. No auxiliary keepalive commits override zero-day choices.
 

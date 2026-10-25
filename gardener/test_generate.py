@@ -1,5 +1,6 @@
 """Focused, dependency-free regression checks using temporary local Git repositories."""
 from datetime import datetime, timedelta
+from fractions import Fraction
 import importlib.util
 import json
 import os
@@ -69,10 +70,10 @@ class GeneratorTests(unittest.TestCase):
 
     def test_probability_boundaries_and_limits(self):
         config = garden.read_config(self.root)
-        for roll, category, maximum in [(0, 'none', 0), (19.999, 'none', 0),
-            (20, 'light', 2), (49.999, 'light', 2), (50, 'moderate', 5),
-            (79.999, 'moderate', 5), (80, 'heavy', 9), (94.999, 'heavy', 9),
-            (95, 'very_heavy', 14), (99.999, 'very_heavy', 14)]:
+        for roll, category, maximum in [(0, 'none', 0), (43.999, 'none', 0),
+            (44, 'light', 2), (64.999, 'light', 2), (65, 'moderate', 5),
+            (85.999, 'moderate', 5), (86, 'heavy', 9), (96.499, 'heavy', 9),
+            (96.5, 'very_heavy', 14), (99.999, 'very_heavy', 14)]:
             with self.subTest(roll=roll), patch.object(garden.random, 'Random') as fake:
                 fake.return_value.random.return_value = roll / 100
                 fake.return_value.randint.side_effect = lambda low, high: high
@@ -210,6 +211,36 @@ class GeneratorTests(unittest.TestCase):
         (self.root / 'gardener/state.json').write_text(json.dumps(state))
         with self.assertRaisesRegex(ValueError, 'Invalid state'):
             garden.read_state(self.root)
+
+
+class ProbabilityTests(unittest.TestCase):
+    def test_single_thirty_percent_reduction_preserves_active_day_mix(self):
+        distribution = garden.read_config(HERE.parent)['distribution']
+        old_weights = dict(none=20, light=30, moderate=30, heavy=15, very_heavy=5)
+        old_ranges = dict(none=(0, 0), light=(1, 2), moderate=(3, 5), heavy=(6, 9), very_heavy=(10, 14))
+        active = sum(Fraction(str(item['weight'])) for item in distribution if item['max'] > 0)
+        self.assertEqual(active, 80 * Fraction(7, 10))
+        expected = Fraction(0)
+        for item in distribution:
+            self.assertEqual((item['min'], item['max']), old_ranges[item['name']])
+            weight = Fraction(str(item['weight']))
+            if item['max'] > 0:
+                self.assertEqual(weight / active, Fraction(old_weights[item['name']], 80))
+            expected += weight / 100 * Fraction(item['min'] + item['max'], 2)
+        self.assertEqual(expected, Fraction(27, 8) * Fraction(7, 10))
+        self.assertEqual(expected / (active / 100), Fraction(135, 32))
+
+    def test_fractional_weights_retain_invalid_value_guards(self):
+        config = garden.read_config(HERE.parent)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'gardener').mkdir()
+            for invalid in (True, '10.5', -1, 101, float('nan'), float('inf')):
+                with self.subTest(weight=invalid):
+                    config['distribution'][3]['weight'] = invalid
+                    (root / 'gardener/config.json').write_text(json.dumps(config))
+                    with self.assertRaisesRegex(ValueError, 'Invalid distribution'):
+                        garden.read_config(root)
 
 
 if __name__ == '__main__':

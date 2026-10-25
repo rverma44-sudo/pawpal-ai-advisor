@@ -53,7 +53,8 @@ def read_config(root):
         raise ValueError('distribution must be a nonempty list')
     for item in distribution:
         if (not isinstance(item['name'], str) or not item['name']
-            or any(type(item[k]) is not int for k in ('weight', 'min', 'max'))
+            or type(item['weight']) not in (int, float)
+            or any(type(item[k]) is not int for k in ('min', 'max'))
             or not 0 <= item['weight'] <= 100 or not 0 <= item['min'] <= item['max'] <= 14):
             raise ValueError('Invalid distribution entry; commit limits are 0 through 14')
     if sum(item['weight'] for item in distribution) != 100:

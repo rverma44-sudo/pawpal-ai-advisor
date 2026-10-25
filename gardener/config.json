@@ -1,10 +1,10 @@
 {
   "seed": "pawpal-garden-v1",
   "distribution": [
-    {"name": "none", "weight": 20, "min": 0, "max": 0},
-    {"name": "light", "weight": 30, "min": 1, "max": 2},
-    {"name": "moderate", "weight": 30, "min": 3, "max": 5},
-    {"name": "heavy", "weight": 15, "min": 6, "max": 9},
-    {"name": "very_heavy", "weight": 5, "min": 10, "max": 14}
+    {"name": "none", "weight": 44, "min": 0, "max": 0},
+    {"name": "light", "weight": 21, "min": 1, "max": 2},
+    {"name": "moderate", "weight": 21, "min": 3, "max": 5},
+    {"name": "heavy", "weight": 10.5, "min": 6, "max": 9},
+    {"name": "very_heavy", "weight": 3.5, "min": 10, "max": 14}
   ]
 }
