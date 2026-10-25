@@ -6,6 +6,13 @@ and its small Git-tracked state file. It makes no claim to improve application
 code. The older PawPal app can remain alongside it; it is never imported or run
 by this workflow.
 
+Generated commit titles rotate through eight accurate descriptions of the SVG
+mosaic, such as `refresh the garden color grid` and `compose a new SVG mosaic`.
+Each retains the frame number, date, and daily progress. Rotation is deterministic
+from the frame counter, consumes no AI credits, and does not affect probability
+selection. Push recovery accepts both the original and varied title formats;
+existing commit history is not rewritten.
+
 ## Daily operation
 
 `.github/workflows/contribution-garden.yml` runs once every day, including

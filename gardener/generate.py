@@ -22,6 +22,22 @@ ALLOWED_REMOTES = {
     'git@github.com:' + REPOSITORY + '.git',
 }
 GENERATED = {'gardener/state.json', 'garden/current.svg'}
+COMMIT_SUBJECTS = (
+    'generate a new tile mosaic',
+    'refresh the garden color grid',
+    'draw the next procedural pattern',
+    'compose a new SVG mosaic',
+    'render the next garden artwork',
+    'refresh tile colors and corner shapes',
+    'generate the next garden snapshot',
+    'redraw the seeded mosaic',
+)
+
+
+def commit_message(state):
+    subject = COMMIT_SUBJECTS[(state['counter'] - 1) % len(COMMIT_SUBJECTS)]
+    return (f'chore(garden): {subject}; frame {state["counter"]} for {state["day"]} '
+            f'({state["completed"]}/{state["target"]})')
 
 
 def now():
@@ -130,7 +146,11 @@ def verify_owned_ahead(root):
     for sha in shas:
         identity = git(root, 'show', '-s', '--format=%an%n%ae%n%cn%n%ce%n%s', sha).stdout.splitlines()
         files = set(git(root, 'diff-tree', '--no-commit-id', '--name-only', '-r', sha).stdout.splitlines())
-        if identity[:4] != [NAME, EMAIL, NAME, EMAIL] or not identity[4].startswith('chore(garden): render frame ') or files != GENERATED:
+        state = json.loads(git(root, 'show', f'{sha}:gardener/state.json').stdout)
+        legacy_message = (f'chore(garden): render frame {state["counter"]} for {state["day"]} '
+                          f'({state["completed"]}/{state["target"]})')
+        if (identity[:4] != [NAME, EMAIL, NAME, EMAIL]
+            or identity[4] not in {commit_message(state), legacy_message} or files != GENERATED):
             raise RuntimeError('Unpublished non-gardener commits exist; refusing to push them')
     return shas
 
@@ -185,8 +205,7 @@ def run(root, dry_run=False):
             raise RuntimeError('Unexpected or empty generated changes; no commit created')
         git(root, '-c', f'user.name={NAME}', '-c', f'user.email={EMAIL}',
             '-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m',
-            f'chore(garden): render frame {state["counter"]} for {day} '
-            f'({state["completed"]}/{state["target"]})')
+            commit_message(state))
         sha = git(root, 'rev-parse', 'HEAD').stdout.strip()
         result['commits'].append(sha)
         print(json.dumps({'event': 'commit_created', 'sha': sha, 'day': day, 'frame': state['counter']}), flush=True)

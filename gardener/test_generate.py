@@ -140,6 +140,20 @@ class GeneratorTests(unittest.TestCase):
         self.assertEqual(again['commits'], [])
         self.assertEqual(frame, (fresh / 'garden/current.svg').read_bytes())
 
+    def test_legacy_titles_still_recover_without_creating_extra_commits(self):
+        def legacy_message(state):
+            return (f'chore(garden): render frame {state["counter"]} for {state["day"]} '
+                    f'({state["completed"]}/{state["target"]})')
+        with (patch.object(garden, 'commit_message', side_effect=legacy_message),
+              patch.object(garden, 'push_verified', side_effect=RuntimeError('offline')),
+              self.assertRaises(RuntimeError)):
+            self.run_day()
+        head = self.g('rev-parse', 'HEAD')
+        result = self.run_day()
+        self.assertEqual(result['commits'], [])
+        self.assertEqual(len(result['recovered_commits']), 3)
+        self.assertEqual(self.remote_head(), head)
+
     def test_partial_day_resumes_saved_target(self):
         state = garden.read_state(self.root)
         state.update(day=str(self.current.date()), counter=1, target=3, completed=1, category='moderate')
@@ -214,6 +228,19 @@ class GeneratorTests(unittest.TestCase):
 
 
 class ProbabilityTests(unittest.TestCase):
+    def test_titles_vary_deterministically_and_keep_frame_context(self):
+        state = dict(day='2026-10-25', counter=1, completed=1, target=14)
+        subjects = []
+        for counter in range(1, 15):
+            state.update(counter=counter, completed=counter)
+            message = garden.commit_message(state)
+            self.assertEqual(message, garden.commit_message(state))
+            self.assertTrue(message.startswith('chore(garden): '))
+            self.assertTrue(message.endswith(f'frame {counter} for 2026-10-25 ({counter}/14)'))
+            subjects.append(message.split(';')[0])
+        self.assertEqual(len(set(subjects)), 8)
+        self.assertTrue(all(a != b for a, b in zip(subjects, subjects[1:])))
+
     def test_single_thirty_percent_reduction_preserves_active_day_mix(self):
         distribution = garden.read_config(HERE.parent)['distribution']
         old_weights = dict(none=20, light=30, moderate=30, heavy=15, very_heavy=5)
